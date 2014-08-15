@@ -21,6 +21,11 @@ public class Candy : MonoBehaviour {
 
 	}
 
+    public void TweenToPosition()
+    {
+        iTween.MoveTo(this.gameObject, iTween.Hash("x", columIndex + xOffset, "y", rowIndex + yOffset, "time", 0.3f));
+    }
+
     void OnMouseDown()
     {
         gameController.Select(this);
@@ -47,7 +52,6 @@ public class Candy : MonoBehaviour {
     {
         gameController = null;
         Destroy(candy.gameObject);
-
         Destroy(this.gameObject);
     }
 }
