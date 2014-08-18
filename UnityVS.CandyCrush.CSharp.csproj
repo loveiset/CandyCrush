@@ -49,6 +49,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Candy\Plugins\Pixelplacement\iTween\iTween.cs" />
+    <Compile Include="Assets\Explosion\CameraShake.cs" />
+    <Compile Include="Assets\Explosion\Explosion.cs" />
     <Compile Include="Assets\Scripts\Candy.cs" />
     <Compile Include="Assets\Scripts\GameController.cs" />
   </ItemGroup>

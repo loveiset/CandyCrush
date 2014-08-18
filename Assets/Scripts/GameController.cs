@@ -15,6 +15,12 @@ public class GameController : MonoBehaviour {
 
     private ArrayList candyMatches;
 
+    public AudioClip canExchange;
+    public AudioClip removeMatch;
+    public AudioClip wrong;
+    public AudioClip swap;
+
+
 	// Use this for initialization
 	void Start () 
     {
@@ -61,8 +67,6 @@ public class GameController : MonoBehaviour {
 
     public void Select(Candy candy)
     {
-        //Remove(candy);
-        //return;
         if (lastSelectedCandy == null)
         {
             lastSelectedCandy = candy;
@@ -72,18 +76,34 @@ public class GameController : MonoBehaviour {
         {
             if (Mathf.Abs(lastSelectedCandy.rowIndex - candy.rowIndex) + Mathf.Abs(lastSelectedCandy.columIndex - candy.columIndex) == 1)
             {
-                Exchange(lastSelectedCandy, candy);
-                if (CheckMatches())
-                {
-                    RemoveMatches();
-                }
+                StartCoroutine(WaitAndCheck(lastSelectedCandy, candy));
+            }
+            else
+            {
+                audio.PlayOneShot(wrong);
             }
             lastSelectedCandy = null;
         }
     }
 
+    IEnumerator WaitAndCheck(Candy lastSelectedCandy, Candy candy)
+    {
+        Exchange(lastSelectedCandy, candy);
+        yield return new WaitForSeconds(0.4f);
+        if (CheckMatches())
+        {
+            RemoveMatches();
+        }
+        else
+        {
+            Exchange(lastSelectedCandy, candy);
+        }
+    }
+
     private void Exchange(Candy lastSelected, Candy nowCandy)
     {
+        audio.PlayOneShot(swap);
+
         SetCandy(lastSelected.rowIndex, lastSelected.columIndex, nowCandy);
         SetCandy(nowCandy.rowIndex, nowCandy.columIndex, lastSelected);
 
@@ -106,8 +126,16 @@ public class GameController : MonoBehaviour {
 	
 	}
 
+    private void AddEffect(Vector3 pos)
+    {
+        Instantiate(Resources.Load("Prefabs/Explosion2"), pos, Quaternion.identity);
+        CameraShake.shakeFor(0.5f, 0.1f);
+    }
+
     private void Remove(Candy candy)
     {
+        audio.PlayOneShot(removeMatch);
+        AddEffect(candy.transform.position);
         candy.Dispose();
         for (int rowIndex = candy.rowIndex + 1; rowIndex < rowNum; rowIndex++)
         {
@@ -130,6 +158,7 @@ public class GameController : MonoBehaviour {
                 if ((GetCandy(rowIndex, columIndex).candyType == GetCandy(rowIndex, columIndex + 1).candyType) &&
                     (GetCandy(rowIndex, columIndex + 1).candyType == GetCandy(rowIndex, columIndex + 2).candyType))
                 {
+                    audio.PlayOneShot(canExchange);
                     AddMathes(GetCandy(rowIndex, columIndex));
                     AddMathes(GetCandy(rowIndex, columIndex + 1));
                     AddMathes(GetCandy(rowIndex, columIndex + 2));
@@ -150,6 +179,7 @@ public class GameController : MonoBehaviour {
                 if ((GetCandy(rowIndex, columIndex).candyType == GetCandy(rowIndex + 1, columIndex).candyType) &&
                     (GetCandy(rowIndex + 1, columIndex).candyType == GetCandy(rowIndex + 2, columIndex).candyType))
                 {
+                    audio.PlayOneShot(canExchange);
                     AddMathes(GetCandy(rowIndex, columIndex));
                     AddMathes(GetCandy(rowIndex + 1, columIndex));
                     AddMathes(GetCandy(rowIndex + 2, columIndex));
@@ -179,14 +209,20 @@ public class GameController : MonoBehaviour {
 
     private void RemoveMatches()
     {
+        StartCoroutine(RemoveAndWait());
+    }
+
+    IEnumerator RemoveAndWait()
+    {
         foreach (Candy candyToRemove in candyMatches)
         {
             Remove(candyToRemove);
         }
+        yield return new WaitForSeconds(0.4f);
+        candyMatches = new ArrayList();
         if (CheckMatches())
         {
             RemoveMatches();
         }
-        candyMatches = new ArrayList();
     }
 }
